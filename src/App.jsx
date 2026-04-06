@@ -340,24 +340,21 @@ export default function App() {
     loadDynamicData();
   }, []);
 
-  // Блокировка скролла при открытых шторках
+  // Блокировка скролла контейнера при открытых шторках
   useEffect(() => {
+    const scrollContainer = document.getElementById('app-scroll-container');
     if (activeSheet && !sheetClosing) {
-      scrollPosRef.current = window.scrollY;
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${scrollPosRef.current}px`;
-      document.body.style.width = '100%';
-      document.body.style.overflow = 'hidden';
-      document.documentElement.style.overflow = 'hidden';
-      document.body.style.overscrollBehavior = 'none';
+      if (scrollContainer) {
+        scrollPosRef.current = scrollContainer.scrollTop;
+        scrollContainer.style.overflow = 'hidden';
+        scrollContainer.style.touchAction = 'none';
+      }
     } else if (!activeSheet) {
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
-      document.body.style.overscrollBehavior = '';
-      window.scrollTo(0, scrollPosRef.current);
+      if (scrollContainer) {
+        scrollContainer.style.overflow = 'auto';
+        scrollContainer.style.touchAction = 'auto';
+        scrollContainer.scrollTo(0, scrollPosRef.current);
+      }
     }
   }, [activeSheet, sheetClosing]);
 
@@ -715,6 +712,15 @@ export default function App() {
           --bg-color-2: #ff7700;
           --bg-color-3: #b000ff;
         }
+        
+        /* ЖЕСТКИЙ ЛОК СКРОЛЛА И БЕЛОГО ФОНА */
+        html, body { 
+          height: 100%;
+          overflow: hidden; 
+          overscroll-behavior: none; 
+          background-color: var(--bg-color-1); 
+        }
+
         .dynamic-bg {
           background: linear-gradient(-45deg, var(--bg-color-1), var(--bg-color-2), var(--bg-color-3), var(--bg-color-1));
           background-size: 300% 300%;
@@ -725,7 +731,6 @@ export default function App() {
           50% { background-position: 100% 50%; }
           100% { background-position: 0% 50%; }
         }
-        html, body { overscroll-behavior-y: none; }
         body {
           color: #1c1c1e;
           -webkit-tap-highlight-color: transparent;
@@ -754,7 +759,6 @@ export default function App() {
         .delay-2 { animation-delay: 0.2s; }
         .delay-3 { animation-delay: 0.3s; }
         
-        /* Исправленный класс для шторок */
         div[id$="-sheet"]:not(#sheet-overlay) {
           bottom: -150px !important;
           padding-bottom: calc(150px + env(safe-area-inset-bottom, 0px)) !important;
@@ -764,7 +768,8 @@ export default function App() {
         .custom-scrollbar { overscroll-behavior: contain !important; }
       `}</style>
 
-      <div className="dynamic-bg min-h-screen flex items-center justify-center p-0 md:p-6 overflow-x-hidden font-sans">
+      {/* Корневой контейнер: теперь он fixed, что на 100% блокирует скролл браузера */}
+      <div className="dynamic-bg fixed inset-0 flex items-center justify-center p-0 md:p-6 overflow-hidden font-sans">
         
         {/* Loader */}
         {loading && (
@@ -792,10 +797,10 @@ export default function App() {
         </div>
 
         {/* Master Desktop Wrapper */}
-        <div className="w-full max-w-5xl mx-auto md:bg-black/20 md:backdrop-blur-3xl md:border md:border-white/10 md:rounded-[3rem] md:shadow-[0_30px_80px_rgba(0,0,0,0.5)] md:flex md:h-[90vh] md:overflow-hidden relative z-10">
+        <div className="w-full max-w-5xl mx-auto md:bg-black/20 md:backdrop-blur-3xl md:border md:border-white/10 md:rounded-[3rem] md:shadow-[0_30px_80px_rgba(0,0,0,0.5)] flex h-full md:h-[90vh] overflow-hidden relative z-10">
           
           {/* Mobile App Container */}
-          <div className="w-full max-w-md mx-auto md:mx-0 md:w-[420px] md:shrink-0 md:border-r md:border-white/10 relative md:overflow-hidden flex flex-col h-full min-h-screen md:min-h-0 bg-transparent">
+          <div className="w-full max-w-md mx-auto md:mx-0 md:w-[420px] md:shrink-0 md:border-r md:border-white/10 relative md:overflow-hidden flex flex-col h-full bg-transparent">
             
             {/* Toast */}
             <div className={`fixed md:absolute top-4 left-1/2 -translate-x-1/2 z-[100] bg-white/20 backdrop-blur-xl border border-white/40 text-white px-5 py-3 rounded-full flex items-center gap-2 shadow-[0_10px_40px_rgba(0,0,0,0.3)] transition-all duration-300 font-medium text-sm w-max ${toast.show ? 'translate-y-0 opacity-100' : '-translate-y-24 opacity-0'}`}>
@@ -803,8 +808,8 @@ export default function App() {
               <span>{toast.msg}</span>
             </div>
 
-            {/* Scrollable Content */}
-            <div id="app-scroll-container" className="w-full h-full md:overflow-y-auto hide-scrollbar pb-12 pt-6 px-5 custom-scrollbar relative">
+            {/* Scrollable Content (Только этот блок теперь скроллится) */}
+            <div id="app-scroll-container" className="w-full h-full overflow-y-auto hide-scrollbar pb-12 pt-6 px-5 custom-scrollbar relative">
               <div style={{ opacity: screenOpacity, transition: 'opacity 0.2s ease' }} className="w-full max-w-md mx-auto">
                 
                 {/* Main Screen */}
@@ -820,7 +825,7 @@ export default function App() {
                       </button>
                     </div>
 
-                    {/* Tilt Card (Эффект выпуклого стекла) */}
+                    {/* Tilt Card (Эффект элегантного выпуклого стекла) */}
                     <div className="w-full fade-in">
                       <div 
                         ref={tiltCardRef}
@@ -831,9 +836,9 @@ export default function App() {
                       >
                         <img src={config.profile.avatar} alt="Avatar" className="absolute inset-0 w-full h-full object-cover z-0" referrerPolicy="no-referrer" />
                         
-                        {/* Эффект толстого выпуклого стекла */}
-                        <div className="absolute inset-0 pointer-events-none z-10 shadow-[inset_0_2px_4px_rgba(255,255,255,0.4),inset_0_12px_40px_rgba(255,255,255,0.3),inset_0_-15px_40px_rgba(0,0,0,0.8)] rounded-[2.5rem]"></div>
-                        <div className="absolute top-[-15%] left-[-15%] w-[130%] h-[45%] bg-gradient-to-b from-white/60 to-transparent rounded-[50%] z-10 pointer-events-none blur-sm -rotate-6 opacity-80"></div>
+                        {/* Эффект элегантного выпуклого стекла (линзы) */}
+                        <div className="absolute inset-0 pointer-events-none z-10 rounded-[2.5rem] shadow-[inset_0_1px_4px_rgba(255,255,255,0.4)]"></div>
+                        <div className="absolute top-0 left-0 w-full h-[45%] bg-gradient-to-b from-white/30 to-transparent rounded-t-[2.5rem] rounded-b-[100%] z-10 pointer-events-none opacity-90"></div>
                         
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10 pointer-events-none"></div>
                         <div className="tilt-glare absolute inset-0 pointer-events-none opacity-0 z-20 mix-blend-overlay"></div>
@@ -1030,7 +1035,7 @@ export default function App() {
               </div>
             </div>
 
-            {/* Bottom Sheets Overlay (Добавлен ID) */}
+            {/* Bottom Sheets Overlay */}
             <div 
               id="sheet-overlay"
               className={`fixed md:absolute inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity duration-300 ${activeSheet && !sheetClosing ? 'opacity-100' : 'opacity-0 pointer-events-none hidden'}`} 
@@ -1038,7 +1043,7 @@ export default function App() {
               onTouchMove={e => e.preventDefault()}
             />
 
-            {/* Bottom Sheets (Исправлен ID для правильной работы CSS шторок) */}
+            {/* Bottom Sheets */}
             <div 
               id={`${activeSheet || 'bottom'}-sheet`}
               className={`fixed md:absolute bottom-0 left-0 w-full bg-black/45 backdrop-blur-2xl border-t border-white/10 rounded-t-[2.5rem] z-50 transform transition-transform duration-300 flex flex-col shadow-[0_-10px_40px_rgba(0,0,0,0.4)] ${activeSheet && !sheetClosing ? 'translate-y-0' : 'sheet-hidden'}`}

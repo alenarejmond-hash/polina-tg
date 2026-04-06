@@ -279,7 +279,7 @@ const Gallery = ({ photos, containerId }) => {
         onScroll={handleScroll}
       >
         {photos.map((p, i) => (
-          <img key={i} src={p} className="w-full h-full object-cover shrink-0 snap-center" alt="Gallery item" />
+          <img key={i} src={p} className="w-full h-full object-cover shrink-0 snap-center" alt="Gallery item" referrerPolicy="no-referrer" />
         ))}
       </div>
       {photos.length > 1 && (
@@ -632,7 +632,7 @@ export default function App() {
         <>
           <div className="overflow-y-auto px-6 pb-32 custom-scrollbar flex-1 min-h-0">
             <h2 className="text-2xl font-bold mb-5 tracking-tight text-white">{config.ui.trainingSheetTitle}</h2>
-            <img src={config.training.photo} alt="Training" className="w-full aspect-square object-contain bg-black/20 rounded-[2rem] mb-5 shadow-[0_10px_30px_rgba(0,0,0,0.5)]" />
+            <img src={config.training.photo} alt="Training" className="w-full aspect-square object-contain bg-black/20 rounded-[2rem] mb-5 shadow-[0_10px_30px_rgba(0,0,0,0.5)]" referrerPolicy="no-referrer" />
             <div className="text-gray-200 space-y-3 leading-relaxed text-[15px] font-medium mb-4" dangerouslySetInnerHTML={{ __html: config.training.text }} />
           </div>
           <div className="absolute left-0 w-full px-6 z-20 pointer-events-none" style={{ bottom: 'calc(150px + env(safe-area-inset-bottom, 0px) + 32px)' }}>
@@ -663,32 +663,6 @@ export default function App() {
           </div>
           <div className="absolute left-0 w-full px-6 z-20 pointer-events-none" style={{ bottom: 'calc(150px + env(safe-area-inset-bottom, 0px) + 32px)' }}>
             <a href={servLink} onClick={(e) => openWithBlurGuide(e, servLink, false)} className="block w-full text-center bg-white text-black rounded-full py-4 px-6 font-bold text-[15px] shadow-[0_10px_40px_rgba(0,0,0,0.5)] active:scale-[0.98] transition-transform pointer-events-auto">
-              {config.ui.enrollBtn}
-            </a>
-          </div>
-        </>
-      );
-    }
-
-    if (activeSheet === 'service' && sheetData !== null) {
-      const s = config.services[sheetData];
-      let servLink = s.buttonLink || '#';
-      const msg = lang === 'ru' ? MSG_SERVICE_RU : MSG_SERVICE_EN;
-      if (servLink.includes('t.me')) servLink += (servLink.includes('?') ? '&' : '?') + 'text=' + encodeURIComponent(msg + ' "' + s.title + '"');
-
-      return (
-        <>
-          <div className="overflow-y-auto px-6 pb-32 custom-scrollbar flex-1 min-h-0">
-            <h2 className="text-2xl font-bold mb-5 tracking-tight text-white leading-tight">{s.title}</h2>
-            <Gallery photos={s.photos?.length ? s.photos : [s.photo]} containerId="service" />
-            <div className="flex items-baseline gap-3 mb-5 px-1">
-              <span className="text-white font-extrabold text-[28px] drop-shadow-md tracking-tight">{s.newPrice}</span>
-              <span className="text-gray-400 font-medium text-[16px] line-through">{s.oldPrice}</span>
-            </div>
-            <div className="text-gray-200 space-y-3 leading-relaxed text-[15px] font-medium mb-4" dangerouslySetInnerHTML={{ __html: s.fullDesc?.replace(/\n/g, '<br>') }} />
-          </div>
-          <div className="absolute left-0 w-full px-6 z-20 pointer-events-none" style={{ bottom: 'calc(150px + env(safe-area-inset-bottom, 0px) + 32px)' }}>
-            <a href={servLink} onClick={(e) => openWithBlurGuide(e, servLink)} className="block w-full text-center bg-white text-black rounded-full py-4 px-6 font-bold text-[15px] shadow-[0_10px_40px_rgba(0,0,0,0.5)] active:scale-[0.98] transition-transform pointer-events-auto">
               {config.ui.enrollBtn}
             </a>
           </div>
@@ -846,7 +820,7 @@ export default function App() {
                       </button>
                     </div>
 
-                    {/* Tilt Card (Исправлены стили аспекта) */}
+                    {/* Tilt Card */}
                     <div className="w-full fade-in">
                       <div 
                         ref={tiltCardRef}
@@ -855,9 +829,9 @@ export default function App() {
                         className="relative w-full rounded-[2.5rem] overflow-hidden floating-shadow transform-gpu will-change-transform"
                         style={{ aspectRatio: '3.5 / 4' }}
                       >
-                        <img src={config.profile.avatar} alt="Avatar" className="absolute inset-0 w-full h-full object-cover z-0" />
+                        <img src={config.profile.avatar} alt="Avatar" className="absolute inset-0 w-full h-full object-cover z-0" referrerPolicy="no-referrer" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10"></div>
-                        <div className="tilt-glare absolute inset-0 pointer-events-none opacity-0 z-20 mix-blend-overlay"></div>
+                        <div className="tilt-glare absolute inset-0 pointer-events-none opacity-0 transition-opacity duration-300 z-20 mix-blend-overlay"></div>
                         <div className="absolute bottom-5 left-5 right-5 text-white z-30 flex items-end justify-between gap-3">
                           <h1 className="text-[28px] sm:text-3xl font-serif font-bold flex items-center gap-1.5 tracking-tight min-w-0">
                             <span className="truncate">{config.profile.name}</span>
@@ -887,7 +861,7 @@ export default function App() {
                       </button>
                     </div>
 
-                    {/* Categories Grid (Исправлен размер иконок) */}
+                    {/* Categories Grid */}
                     <div className="grid grid-cols-2 gap-3 fade-in delay-2 mt-3">
                       {config.categories.map((item, index) => {
                         const isWide = item.type === 'wide';
@@ -1028,7 +1002,7 @@ export default function App() {
                     <div className="space-y-3 pb-8">
                       {config.services.map((s, i) => (
                         <div key={i} className="card-shadow rounded-[2rem] p-4 flex flex-col gap-4 active:scale-[0.98] transition-transform text-left cursor-pointer" onClick={() => openSheet('service', i)}>
-                          <img src={s.photos?.length ? s.photos[0] : s.photo} className="w-full h-48 md:h-56 rounded-2xl object-cover shadow-lg border border-white/10" alt="Service" />
+                          <img src={s.photos?.length ? s.photos[0] : s.photo} className="w-full h-48 md:h-56 rounded-2xl object-cover shadow-lg border border-white/10" alt="Service" referrerPolicy="no-referrer" />
                           <div className="flex flex-col flex-grow">
                             <h3 className="text-white font-bold text-[16px] mb-2 leading-tight">{s.title}</h3>
                             <p className="text-gray-300 text-[12px] line-clamp-3 leading-relaxed mb-4" dangerouslySetInnerHTML={{__html: s.shortDesc?.replace(/\n/g, '<br>')}}></p>
@@ -1097,7 +1071,7 @@ export default function App() {
                 <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-purple-500 rounded-[2.5rem] blur-xl opacity-40 group-hover:opacity-70 transition-opacity duration-700"></div>
                 <div className="relative bg-black/40 backdrop-blur-2xl border border-white/20 p-8 rounded-[2rem] shadow-2xl transform transition-transform duration-700 group-hover:scale-105 flex flex-col items-center">
                   <div className="bg-white p-3 rounded-2xl mb-5 shadow-[inset_0_2px_10px_rgba(0,0,0,0.1)]">
-                    <img src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(DESKTOP_QR_LINK)}&bgcolor=ffffff&color=000000&margin=1`} alt="QR" className="w-48 h-48 object-contain" />
+                    <img src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(DESKTOP_QR_LINK)}&bgcolor=ffffff&color=000000&margin=1`} alt="QR" className="w-48 h-48 object-contain" referrerPolicy="no-referrer" />
                   </div>
                   <div className="flex items-center gap-2 text-white/90">
                     <Scan className="text-orange-400" size={20} />

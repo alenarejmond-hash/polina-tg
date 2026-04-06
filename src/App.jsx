@@ -22,7 +22,7 @@ const MSG_SERVICE_EN = "Hello! I am interested in your service:";
 // 🖥️ НАСТРОЙКИ ДЛЯ ПК ВЕРСИИ
 // ==========================================
 const DESKTOP_TITLE = "";
-const DESKTOP_DESC = "Открой Smart-визитку на смартфоне, чтобы почувствовать магию 3D-эффектов, плавных анимаций и тактильного отклика.";
+const DESKTOP_DESC = "Открой Web-app на смартфоне, чтобы почувствовать магию 3D-эффектов, плавных анимаций и тактильного отклика.";
 const DESKTOP_QR_LINK = "https://t.me/polishaputeshestvennitsa";
 
 // ==========================================
@@ -438,8 +438,8 @@ export default function App() {
          });
       }
 
-      // Обновляем текущий стейт если язык совпадает
-      setConfig(prev => APP_DATA[lang]);
+      // Обновляем текущий стейт с ГЛУБОКИМ клонированием, чтобы React 100% увидел изменения
+      setConfig(JSON.parse(JSON.stringify(APP_DATA[lang])));
     } catch (e) {
       console.error(e);
     }
@@ -451,7 +451,7 @@ export default function App() {
     setTimeout(() => {
       const newLang = lang === 'ru' ? 'en' : 'ru';
       setLang(newLang);
-      setConfig(APP_DATA[newLang]);
+      setConfig(JSON.parse(JSON.stringify(APP_DATA[newLang])));
       setScreenOpacity(1);
     }, 200);
   };
@@ -588,7 +588,7 @@ export default function App() {
       );
     }
 
-    if (activeSheet === 'posts' && sheetData) {
+    if (activeSheet === 'posts' && sheetData !== null) {
       const cat = config.categories[sheetData];
       return (
         <div className="overflow-y-auto px-6 pb-12 custom-scrollbar">
@@ -735,6 +735,8 @@ export default function App() {
         .delay-1 { animation-delay: 0.1s; }
         .delay-2 { animation-delay: 0.2s; }
         .delay-3 { animation-delay: 0.3s; }
+        
+        /* Исправленный класс для шторок */
         div[id$="-sheet"]:not(#sheet-overlay) {
           bottom: -150px !important;
           padding-bottom: calc(150px + env(safe-area-inset-bottom, 0px)) !important;
@@ -800,13 +802,14 @@ export default function App() {
                       </button>
                     </div>
 
-                    {/* Tilt Card */}
+                    {/* Tilt Card (Исправлены стили аспекта) */}
                     <div className="w-full fade-in">
                       <div 
                         ref={tiltCardRef}
                         onMouseMove={handleTilt} onMouseLeave={resetTilt}
                         onTouchMove={handleTilt} onTouchEnd={resetTilt}
-                        className="relative w-full aspect-[3.5/4] rounded-[2.5rem] overflow-hidden floating-shadow transform-gpu will-change-transform"
+                        className="relative w-full rounded-[2.5rem] overflow-hidden floating-shadow transform-gpu will-change-transform"
+                        style={{ aspectRatio: '3.5 / 4' }}
                       >
                         <img src={config.profile.avatar} alt="Avatar" className="absolute inset-0 w-full h-full object-cover z-0" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10"></div>
@@ -840,7 +843,7 @@ export default function App() {
                       </button>
                     </div>
 
-                    {/* Categories Grid */}
+                    {/* Categories Grid (Исправлен размер иконок) */}
                     <div className="grid grid-cols-2 gap-3 fade-in delay-2 mt-3">
                       {config.categories.map((item, index) => {
                         const isWide = item.type === 'wide';
@@ -861,7 +864,7 @@ export default function App() {
                             <button key={index} onClick={handleClick} className="col-span-2 block relative rounded-3xl p-5 card-shadow transition-transform active:scale-[0.98] flex items-center justify-between text-left w-full mt-1">
                               {badgeHtml}
                               <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-full border border-white/40 flex items-center justify-center bg-white/10 text-white shadow-sm shrink-0">
+                                <div className="w-12 h-12 rounded-full border border-white/40 flex items-center justify-center bg-white/10 text-white text-2xl shadow-sm shrink-0">
                                   <IconResolver name={item.icon} className="text-white" />
                                 </div>
                                 <div>
@@ -877,7 +880,7 @@ export default function App() {
                         return (
                           <button key={index} onClick={handleClick} className="block relative rounded-3xl p-4 card-shadow transition-transform active:scale-[0.98] flex flex-col items-center justify-center aspect-square w-full text-center">
                             {badgeHtml}
-                            <div className="w-12 h-12 rounded-full border border-white/40 flex items-center justify-center mb-3 bg-white/10 text-white">
+                            <div className="w-12 h-12 rounded-full border border-white/40 flex items-center justify-center mb-3 bg-white/10 text-white text-2xl">
                               <IconResolver name={item.icon} className="text-white" />
                             </div>
                             <h3 className="text-[14px] font-bold text-white leading-tight" dangerouslySetInnerHTML={{__html: item.title}}></h3>
@@ -989,15 +992,17 @@ export default function App() {
               </div>
             </div>
 
-            {/* Bottom Sheets Overlay */}
+            {/* Bottom Sheets Overlay (Добавлен ID) */}
             <div 
+              id="sheet-overlay"
               className={`fixed md:absolute inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity duration-300 ${activeSheet && !sheetClosing ? 'opacity-100' : 'opacity-0 pointer-events-none hidden'}`} 
               onClick={closeSheet} 
               onTouchMove={e => e.preventDefault()}
             />
 
-            {/* Bottom Sheets (Rendered dynamically) */}
+            {/* Bottom Sheets (Исправлен ID для правильной работы CSS шторок) */}
             <div 
+              id={`${activeSheet || 'bottom'}-sheet`}
               className={`fixed md:absolute bottom-0 left-0 w-full bg-black/45 backdrop-blur-2xl border-t border-white/10 rounded-t-[2.5rem] z-50 transform transition-transform duration-300 flex flex-col shadow-[0_-10px_40px_rgba(0,0,0,0.4)] ${activeSheet && !sheetClosing ? 'translate-y-0' : 'sheet-hidden'}`}
               style={{
                 height: activeSheet === 'posts' ? 'calc(50vh + 150px)' : activeSheet === 'fortune' || activeSheet === 'review' ? 'auto' : 'calc(90vh + 150px)',

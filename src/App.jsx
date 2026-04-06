@@ -23,7 +23,7 @@ const MSG_SERVICE_EN = "Hello! I am interested in your service:";
 // ==========================================
 const DESKTOP_TITLE = "";
 const DESKTOP_DESC = "Открой Web-app на смартфоне, чтобы почувствовать магию 3D-эффектов, плавных анимаций и тактильного отклика.";
-const DESKTOP_QR_LINK = "https://t.me/polishaputeshestvennitsa";
+const DESKTOP_QR_LINK = "https://pola.nice-app.ru/";
 
 // ==========================================
 // 🔗 ИНТЕГРАЦИЯ С GOOGLE ТАБЛИЦАМИ
@@ -555,7 +555,7 @@ export default function App() {
     }
   };
 
-  const openWithBlurGuide = (e, url) => {
+  const openWithBlurGuide = (e, url, showOverlay = true) => {
     e.preventDefault();
     haptic('medium');
     let finalUrl = String(url).trim();
@@ -568,7 +568,7 @@ export default function App() {
     } else {
       window.open(finalUrl, '_blank');
     }
-    setShowBlurGuide(true);
+    if (showOverlay) setShowBlurGuide(true);
   };
 
   // ==========================================
@@ -618,7 +618,33 @@ export default function App() {
             <div className="text-gray-200 space-y-3 leading-relaxed text-[15px] font-medium mb-4" dangerouslySetInnerHTML={{ __html: config.training.text }} />
           </div>
           <div className="absolute left-0 w-full px-6 z-20 pointer-events-none" style={{ bottom: 'calc(150px + env(safe-area-inset-bottom, 0px) + 32px)' }}>
-            <a href={trainLink} onClick={(e) => openWithBlurGuide(e, trainLink)} className="block w-full text-center bg-white text-black rounded-full py-4 px-6 font-bold text-[15px] shadow-[0_10px_40px_rgba(0,0,0,0.5)] active:scale-[0.98] transition-transform pointer-events-auto">
+            <a href={trainLink} onClick={(e) => openWithBlurGuide(e, trainLink, false)} className="block w-full text-center bg-white text-black rounded-full py-4 px-6 font-bold text-[15px] shadow-[0_10px_40px_rgba(0,0,0,0.5)] active:scale-[0.98] transition-transform pointer-events-auto">
+              {config.ui.enrollBtn}
+            </a>
+          </div>
+        </>
+      );
+    }
+
+    if (activeSheet === 'service' && sheetData !== null) {
+      const s = config.services[sheetData];
+      let servLink = s.buttonLink || '#';
+      const msg = lang === 'ru' ? MSG_SERVICE_RU : MSG_SERVICE_EN;
+      if (servLink.includes('t.me')) servLink += (servLink.includes('?') ? '&' : '?') + 'text=' + encodeURIComponent(msg + ' "' + s.title + '"');
+
+      return (
+        <>
+          <div className="overflow-y-auto px-6 pb-32 custom-scrollbar flex-1 min-h-0">
+            <h2 className="text-2xl font-bold mb-5 tracking-tight text-white leading-tight">{s.title}</h2>
+            <Gallery photos={s.photos?.length ? s.photos : [s.photo]} containerId="service" />
+            <div className="flex items-baseline gap-3 mb-5 px-1">
+              <span className="text-white font-extrabold text-[28px] drop-shadow-md tracking-tight">{s.newPrice}</span>
+              <span className="text-gray-400 font-medium text-[16px] line-through">{s.oldPrice}</span>
+            </div>
+            <div className="text-gray-200 space-y-3 leading-relaxed text-[15px] font-medium mb-4" dangerouslySetInnerHTML={{ __html: s.fullDesc?.replace(/\n/g, '<br>') }} />
+          </div>
+          <div className="absolute left-0 w-full px-6 z-20 pointer-events-none" style={{ bottom: 'calc(150px + env(safe-area-inset-bottom, 0px) + 32px)' }}>
+            <a href={servLink} onClick={(e) => openWithBlurGuide(e, servLink, false)} className="block w-full text-center bg-white text-black rounded-full py-4 px-6 font-bold text-[15px] shadow-[0_10px_40px_rgba(0,0,0,0.5)] active:scale-[0.98] transition-transform pointer-events-auto">
               {config.ui.enrollBtn}
             </a>
           </div>
@@ -786,14 +812,14 @@ export default function App() {
             </div>
 
             {/* Scrollable Content */}
-            <div className="w-full h-full md:overflow-y-auto hide-scrollbar pb-12 pt-6 px-5 custom-scrollbar relative">
+            <div id="app-scroll-container" className="w-full h-full md:overflow-y-auto hide-scrollbar pb-12 pt-6 px-5 custom-scrollbar relative">
               <div style={{ opacity: screenOpacity, transition: 'opacity 0.2s ease' }} className="w-full max-w-md mx-auto">
                 
                 {/* Main Screen */}
                 {activeScreen === 'main' && (
                   <div className="space-y-6">
                     {/* Top Bar */}
-                    <div className="w-full flex justify-end items-center gap-3 px-2 -mt-4 -mb-4 fade-in relative z-10">
+                    <div className="w-full flex justify-end items-center gap-3 px-2 mb-2 fade-in relative z-10">
                       <button onClick={handleLanguageToggle} className="text-white hover:text-gray-200 font-extrabold text-[11px] uppercase transition-colors active:scale-95 tracking-widest drop-shadow-md">
                         {lang === 'ru' ? 'EN' : 'RU'}
                       </button>
@@ -855,7 +881,14 @@ export default function App() {
 
                         const handleClick = () => {
                           if (item.action === 'training') openSheet('training');
-                          else if (item.action === 'services') { haptic('light'); setActiveScreen('services'); window.scrollTo(0,0); }
+                          else if (item.action === 'services') { 
+                            haptic('light'); 
+                            setActiveScreen('services'); 
+                            setTimeout(() => {
+                              window.scrollTo(0,0);
+                              document.getElementById('app-scroll-container')?.scrollTo(0,0);
+                            }, 10);
+                          }
                           else openSheet('posts', index);
                         };
 
@@ -898,7 +931,7 @@ export default function App() {
                         </button>
                       </div>
                       <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 hide-scrollbar">
-                        {config.reviews.map((r, i) => (
+                        {[...config.reviews].reverse().map((r, i) => (
                           <div key={i} className="snap-start shrink-0 w-[85%] bg-black/40 backdrop-blur-2xl border border-white/10 rounded-[1.5rem] p-5 flex flex-col justify-between relative overflow-hidden ml-1 my-2">
                             <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
                             <div className="relative z-10">
@@ -961,7 +994,14 @@ export default function App() {
                 {activeScreen === 'services' && (
                   <div className="space-y-6 fade-in">
                     <div className="flex items-center gap-4 mb-2">
-                      <button onClick={() => { haptic('light'); setActiveScreen('main'); }} className="w-12 h-12 rounded-full border border-white/20 shadow-sm bg-black/30 text-white flex items-center justify-center active:scale-95 transition-transform">
+                      <button onClick={() => { 
+                        haptic('light'); 
+                        setActiveScreen('main'); 
+                        setTimeout(() => {
+                          window.scrollTo(0,0);
+                          document.getElementById('app-scroll-container')?.scrollTo(0,0);
+                        }, 10);
+                      }} className="w-12 h-12 rounded-full border border-white/20 shadow-sm bg-black/30 text-white flex items-center justify-center active:scale-95 transition-transform">
                         <ArrowLeft size={20} />
                       </button>
                       <h2 className="text-2xl font-bold text-gray-900 tracking-tight">{config.ui.servicesPageTitle}</h2>

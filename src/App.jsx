@@ -316,16 +316,22 @@ export default function App() {
   // Refs
   const tiltCardRef = useRef(null);
   const scrollPosRef = useRef(0);
-  
-  const tg = window.Telegram?.WebApp;
 
   useEffect(() => {
-    if (tg) {
-      tg.expand();
-      tg.ready();
-      try { tg.disableVerticalSwipes(); } catch(e) {}
-      tg.setHeaderColor('#b000ff');
-    }
+    // Динамическая загрузка Telegram Web App скрипта (решает проблему с VPN)
+    const tgScript = document.createElement('script');
+    tgScript.src = 'https://telegram.org/js/telegram-web-app.js';
+    tgScript.async = true;
+    tgScript.onload = () => {
+      const tg = window.Telegram?.WebApp;
+      if (tg) {
+        try { tg.expand(); } catch(e) {}
+        try { tg.ready(); } catch(e) {}
+        try { tg.disableVerticalSwipes(); } catch(e) {}
+        try { tg.setHeaderColor('#b000ff'); } catch(e) {}
+      }
+    };
+    document.head.appendChild(tgScript);
     
     document.addEventListener('contextmenu', event => event.preventDefault());
 
@@ -446,6 +452,7 @@ export default function App() {
   };
 
   const handleLanguageToggle = () => {
+    const tg = window.Telegram?.WebApp;
     if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
     setScreenOpacity(0);
     setTimeout(() => {
@@ -457,10 +464,12 @@ export default function App() {
   };
 
   const haptic = (type = 'light') => {
+    const tg = window.Telegram?.WebApp;
     if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred(type);
   };
 
   const showToastMsg = (message, iconComp) => {
+    const tg = window.Telegram?.WebApp;
     if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
     setToast({ show: true, msg: message, icon: iconComp });
     setTimeout(() => setToast({ show: false, msg: '', icon: null }), 2500);
@@ -487,6 +496,7 @@ export default function App() {
   };
 
   const submitReviewForm = () => {
+    const tg = window.Telegram?.WebApp;
     if (reviewRating === 0) {
       if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
       showToastMsg(config.ui.toastWarning, <AlertCircle className="text-orange-400" size={18} />);
@@ -517,7 +527,14 @@ export default function App() {
     haptic('medium');
     const shareUrl = "https://t.me/polinachubakina_bot/polina"; 
     const shareText = "Полина - хореограф, артистка фаер-шоу, педагог... Открой мою визитку здесь! ✨";
-    if (tg) tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`);
+    const tg = window.Telegram?.WebApp;
+    const fullUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
+    
+    if (tg && tg.openTelegramLink) {
+      tg.openTelegramLink(fullUrl);
+    } else {
+      window.open(fullUrl, '_blank');
+    }
   };
 
   const handleTilt = (e) => {
@@ -562,7 +579,8 @@ export default function App() {
     if (finalUrl.startsWith('@')) finalUrl = 'https://t.me/' + finalUrl.substring(1);
     else if (finalUrl.includes('t.me') && !finalUrl.startsWith('http')) finalUrl = 'https://' + finalUrl;
 
-    if (tg) {
+    const tg = window.Telegram?.WebApp;
+    if (tg && tg.openTelegramLink) {
       if (finalUrl.includes('t.me')) tg.openTelegramLink(finalUrl);
       else tg.openLink(finalUrl);
     } else {
